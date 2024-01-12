@@ -14,11 +14,39 @@ Uint32 start = 0;
 const int fps = 16;
 const int framerate =  1000/fps;
 
+// use essa função pra desenhar uma imagem na tela
+void DrawImage(int x, int y, SDL_Surface *image)
+{
+    SDL_Rect mover;
+    mover.x = x;
+    mover.y = y;
+
+    SDL_BlitSurface(image, NULL, tela, &mover);
+}
+
+SDL_Surface *tutorialImage = NULL;
+
+// use essa função pra carregar arquivos
+// nota: essa função só deve ser chamada no começo do programa
+void LoadFiles()
+{
+    tutorialImage = SDL_LoadBMP("tutorial.bmp");
+}
+
+
+// use essa função pra fechar arquivos
+// nota: essa função só deve ser chamada no final do programa
+void CloseFiles()
+{
+    SDL_FreeSurface(tutorialImage);
+}
+
 int main(int argc, char*args[])
 {
 SDL_Init(SDL_INIT_EVERYTHING);
 tela = SDL_SetVideoMode(screen_width,screen_height,screen_bpp,SDL_SWSURFACE);
 
+LoadFiles();
 
 // game loop
 while(executando)
@@ -33,7 +61,8 @@ while(executando)
         }
     }
 
-    SDL_FillRect(tela, 0, 0xffffff);
+    DrawImage(0,0,tutorialImage);
+
     SDL_Flip(tela);
     if(framerate > (SDL_GetTicks()-start))
     {
@@ -41,6 +70,8 @@ while(executando)
     }
 }
 
+
+CloseFiles();
 SDL_Quit();
 return 0;
 }

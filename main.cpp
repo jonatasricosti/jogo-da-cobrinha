@@ -49,7 +49,7 @@ void DrawImage(int x, int y, SDL_Surface *image)
     SDL_BlitSurface(image, NULL, tela, &mover);
 }
 
-// use essa função pra desenhar uma cortada na tela
+// use essa função pra desenhar uma imagem cortada na tela
 void DrawImageFrame(int x, int y, SDL_Surface *source, SDL_Surface *destination, int width, int height, int frame)
 {
     SDL_Rect mover;

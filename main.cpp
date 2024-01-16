@@ -1,12 +1,11 @@
 #include <SDL.h>
 
-
 SDL_Event evento;
 SDL_Surface *tela = NULL;
 bool executando = true;
 
-const int screen_width = 640;
-const int screen_height = 480;
+const int screen_width = 300;
+const int screen_height = 300;
 const int screen_bpp = 32;
 
 // para o framerate
@@ -76,9 +75,109 @@ void DrawText(int x, int y, SDL_Surface *source, SDL_Surface *destination, char 
     }
 }
 
+
+const int ALL_DOTS = 900;
+
+// o tamanho da cobrinha
+const int rectW = 10;
+const int rectH = 10;
+
+// essa classe representa a cobrinha
+class _Snake
+{
+public:
+    int x[ALL_DOTS];
+    int y[ALL_DOTS];
+    int vx;
+    int vy;
+
+    int tamanho;
+
+};
+
+_Snake cobrinha;
+
+// inicia a posição, velocidade, tamanho da cobrinha
+void ResetGame()
+{
+    cobrinha.tamanho = 3;
+    // inicia as posições da cobrinha
+    for(int i = 0; i < cobrinha.tamanho; i++)
+    {
+        cobrinha.x[i] = 50 - i*rectW;
+        cobrinha.y[i] = 50;
+
+        cobrinha.vx = rectW;
+        cobrinha.vy = 0;
+    }
+}
+
+
+// use essa função pra física e controle do jogo
+void UpdateGame()
+{
+
+    // faz o corpo ir atrás da cabeça da cobrinha
+    for(int z = cobrinha.tamanho; z > 0; z--)
+    {
+        cobrinha.x[z] = cobrinha.x[(z-1)];
+        cobrinha.y[z] = cobrinha.y[(z-1)];
+
+        // se a cabeça da cobrinha se tocar
+        if((z > 4) && (cobrinha.x[0] == cobrinha.x[z]) && (cobrinha.y[0] == cobrinha.y[z]))
+        {
+            ResetGame();
+        }
+    }
+
+    // move a cabeça da cobrinha
+    cobrinha.x[0] = cobrinha.x[0] + cobrinha.vx;
+    cobrinha.y[0] = cobrinha.y[0] + cobrinha.vy;
+
+    Uint8 *tecla = SDL_GetKeyState(NULL);
+    if(tecla[SDLK_LEFT] && cobrinha.vx <= 0)
+    {
+        cobrinha.vx = -rectW;
+        cobrinha.vy = 0;
+    }
+
+    else if(tecla[SDLK_RIGHT] && cobrinha.vx >= 0)
+    {
+        cobrinha.vx = rectW;
+        cobrinha.vy = 0;
+    }
+
+    else if(tecla[SDLK_UP] && cobrinha.vy <= 0)
+    {
+        cobrinha.vx = 0;
+        cobrinha.vy = -rectH;
+    }
+
+    if(tecla[SDLK_DOWN] && cobrinha.vy >= 0)
+    {
+        cobrinha.vx = 0;
+        cobrinha.vy = rectH;
+    }
+
+    // colição do snake com a comida?
+
+    // colições nas bordas da tela
+    // lado esquerdo, direto, em cima, em baixo da tela
+    if(cobrinha.x[0] < 0 ||
+       cobrinha.x[0] > screen_width - rectW ||
+       cobrinha.y[0] < 0 ||
+       cobrinha.y[0] > screen_height - rectH)
+    {
+        ResetGame();
+    }
+}
+
+
 SDL_Surface *tutorialImage = NULL;
 SDL_Surface *pauseImage = NULL;
 SDL_Surface *whitefontImage = NULL;
+
+SDL_Surface *cobrinhaImage = NULL;
 
 // use essa função pra carregar arquivos
 // nota: essa função só deve ser chamada no começo do programa
@@ -87,6 +186,8 @@ void LoadFiles()
     tutorialImage = SDL_LoadBMP("tutorial.bmp");
     pauseImage = fundo_transparente("pause.bmp", 0,255,255);
     whitefontImage = fundo_transparente("fontes/whitefont.bmp", 255,0,255);
+
+    cobrinhaImage = SDL_LoadBMP("cobrinha.bmp");
 }
 
 
@@ -97,6 +198,16 @@ void CloseFiles()
     SDL_FreeSurface(tutorialImage);
     SDL_FreeSurface(pauseImage);
     SDL_FreeSurface(whitefontImage);
+    SDL_FreeSurface(cobrinhaImage);
+}
+
+// desenha a cobrinha na tela
+void DrawSnake()
+{
+    for(int i = 0; i < cobrinha.tamanho; i++)
+    {
+        DrawImage(cobrinha.x[i], cobrinha.y[i], cobrinhaImage);
+    }
 }
 
 int main(int argc, char*args[])
@@ -105,6 +216,8 @@ SDL_Init(SDL_INIT_EVERYTHING);
 tela = SDL_SetVideoMode(screen_width,screen_height,screen_bpp,SDL_SWSURFACE);
 
 LoadFiles();
+
+ResetGame();
 
 // game loop
 while(executando)
@@ -119,7 +232,12 @@ while(executando)
         }
     }
 
-    DrawText(0,0,whitefontImage,tela,"Eu gosto muito de programar c++",16,32);
+
+    SDL_FillRect(tela, 0,0);
+
+    UpdateGame();
+    DrawSnake();
+
 
     SDL_Flip(tela);
     if(framerate > (SDL_GetTicks()-start))

@@ -219,6 +219,9 @@ SDL_Surface *whitefontImage = NULL;
 SDL_Surface *cobrinhaImage = NULL;
 SDL_Surface *appleImage = NULL;
 
+SDL_Surface *vLine = NULL;
+SDL_Surface *hLine = NULL;
+
 // use essa função pra carregar arquivos
 // nota: essa função só deve ser chamada no começo do programa
 void LoadFiles()
@@ -229,6 +232,9 @@ void LoadFiles()
 
     cobrinhaImage = SDL_LoadBMP("cobrinha.bmp");
     appleImage = SDL_LoadBMP("apple.bmp");
+
+    vLine = SDL_LoadBMP("vertical.bmp");
+    hLine = SDL_LoadBMP("horizontal.bmp");
 }
 
 
@@ -241,6 +247,9 @@ void CloseFiles()
     SDL_FreeSurface(whitefontImage);
     SDL_FreeSurface(cobrinhaImage);
     SDL_FreeSurface(appleImage);
+
+    SDL_FreeSurface(vLine);
+    SDL_FreeSurface(hLine);
 }
 
 // desenha a cobrinha na tela
@@ -256,6 +265,15 @@ void DrawSnake()
 void DrawApple()
 {
     DrawImage(apple.x,apple.y,appleImage);
+}
+
+void DrawGrid()
+{
+    for(int i = 0; i < 300; i = i+10)
+    {
+        DrawImage(i, 0, vLine);
+        DrawImage(0, i, hLine);
+    }
 }
 
 int main(int argc, char*args[])
@@ -283,6 +301,8 @@ while(executando)
 
 
     SDL_FillRect(tela, 0,0);
+
+    DrawGrid();
 
     UpdateGame();
     CollideWithSnake();

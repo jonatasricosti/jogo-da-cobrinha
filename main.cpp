@@ -36,8 +36,6 @@ SDL_Surface *fundo_transparente(const char *filename, Uint8 red, Uint8 green, Ui
 }
 
 
-
-
 // use essa função pra desenhar uma imagem na tela
 void DrawImage(int x, int y, SDL_Surface *image)
 {
@@ -79,8 +77,9 @@ void DrawText(int x, int y, SDL_Surface *source, SDL_Surface *destination, char 
 const int ALL_DOTS = 900;
 
 // o tamanho da cobrinha
-const int rectW = 10;
-const int rectH = 10;
+// rect = rectangle = retângulo
+const int rectW = 10; // width = largura
+const int rectH = 10; // height = altura
 
 // essa classe representa a cobrinha
 class _Snake
@@ -116,7 +115,6 @@ void ResetGame()
 // use essa função pra física e controle do jogo
 void UpdateGame()
 {
-
     // faz o corpo ir atrás da cabeça da cobrinha
     for(int z = cobrinha.tamanho; z > 0; z--)
     {
@@ -159,10 +157,8 @@ void UpdateGame()
         cobrinha.vy = rectH;
     }
 
-    // colição do snake com a comida?
-
-    // colições nas bordas da tela
-    // lado esquerdo, direto, em cima, em baixo da tela
+    // colisões nas bordas da tela
+    // lado esquerdo, lado direto, em cima, em baixo da tela
     if(cobrinha.x[0] < 0 ||
        cobrinha.x[0] > screen_width - rectW ||
        cobrinha.y[0] < 0 ||
@@ -173,11 +169,55 @@ void UpdateGame()
 }
 
 
+// essa classe representa a comida ou maçã
+class _Apple
+{
+    public:
+    int x;
+    int y;
+};
+
+_Apple apple;
+
+// inicia a posição da comida em lugar aleatório
+void PlaceApple()
+{
+    static int r = 0;
+
+    r = rand() % 30;
+    apple.x = r*rectW;
+
+    r = rand() % 30;
+    apple.y = r*rectH;
+
+    for(int z = cobrinha.tamanho; z > 0; z--)
+    {
+        // Verifique se comida se sobrepõe à nossa cobrinha
+        if(apple.x == cobrinha.x[z] && apple.y == cobrinha.y[z])
+        {
+            PlaceApple();
+            break;
+        }
+    }
+}
+
+// use essa função pra ver se a cobrinha comeu a comida
+void CollideWithSnake()
+{
+    // se cabeça da cobrinha colidir com a comida
+    if((cobrinha.x[0] == apple.x) && (cobrinha.y[0] == apple.y))
+    {
+        cobrinha.tamanho = cobrinha.tamanho+1;
+        PlaceApple();
+    }
+}
+
 SDL_Surface *tutorialImage = NULL;
 SDL_Surface *pauseImage = NULL;
 SDL_Surface *whitefontImage = NULL;
 
 SDL_Surface *cobrinhaImage = NULL;
+SDL_Surface *appleImage = NULL;
 
 // use essa função pra carregar arquivos
 // nota: essa função só deve ser chamada no começo do programa
@@ -188,6 +228,7 @@ void LoadFiles()
     whitefontImage = fundo_transparente("fontes/whitefont.bmp", 255,0,255);
 
     cobrinhaImage = SDL_LoadBMP("cobrinha.bmp");
+    appleImage = SDL_LoadBMP("apple.bmp");
 }
 
 
@@ -199,6 +240,7 @@ void CloseFiles()
     SDL_FreeSurface(pauseImage);
     SDL_FreeSurface(whitefontImage);
     SDL_FreeSurface(cobrinhaImage);
+    SDL_FreeSurface(appleImage);
 }
 
 // desenha a cobrinha na tela
@@ -210,14 +252,21 @@ void DrawSnake()
     }
 }
 
+// desenha a comida ou maça na tela
+void DrawApple()
+{
+    DrawImage(apple.x,apple.y,appleImage);
+}
+
 int main(int argc, char*args[])
 {
 SDL_Init(SDL_INIT_EVERYTHING);
 tela = SDL_SetVideoMode(screen_width,screen_height,screen_bpp,SDL_SWSURFACE);
 
 LoadFiles();
-
 ResetGame();
+PlaceApple();
+
 
 // game loop
 while(executando)
@@ -236,7 +285,9 @@ while(executando)
     SDL_FillRect(tela, 0,0);
 
     UpdateGame();
+    CollideWithSnake();
     DrawSnake();
+    DrawApple();
 
 
     SDL_Flip(tela);

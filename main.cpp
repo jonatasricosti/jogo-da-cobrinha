@@ -4,8 +4,11 @@ SDL_Event evento;
 SDL_Surface *tela = NULL;
 bool executando = true;
 
+int pontos = 0;
+int record = 0;
+
 const int screen_width = 300;
-const int screen_height = 300;
+const int screen_height = 400;
 const int screen_bpp = 32;
 
 // para o framerate
@@ -108,6 +111,7 @@ void ResetGame()
 
         cobrinha.vx = rectW;
         cobrinha.vy = 0;
+        pontos = 0;
     }
 }
 
@@ -151,7 +155,7 @@ void UpdateGame()
         cobrinha.vy = -rectH;
     }
 
-    if(tecla[SDLK_DOWN] && cobrinha.vy >= 0)
+    else if(tecla[SDLK_DOWN] && cobrinha.vy >= 0)
     {
         cobrinha.vx = 0;
         cobrinha.vy = rectH;
@@ -162,7 +166,7 @@ void UpdateGame()
     if(cobrinha.x[0] < 0 ||
        cobrinha.x[0] > screen_width - rectW ||
        cobrinha.y[0] < 0 ||
-       cobrinha.y[0] > screen_height - rectH)
+       cobrinha.y[0] > screen_height - rectH - 100)
     {
         ResetGame();
     }
@@ -208,16 +212,31 @@ void CollideWithSnake()
     if((cobrinha.x[0] == apple.x) && (cobrinha.y[0] == apple.y))
     {
         cobrinha.tamanho = cobrinha.tamanho+1;
+        pontos = pontos+1;
         PlaceApple();
     }
 }
 
+SDL_Surface *blackfontImage = NULL;
+SDL_Surface *bluefontImage = NULL;
+SDL_Surface *cyanfontImage = NULL;
+SDL_Surface *greenfontImage = NULL;
+SDL_Surface *greyfontImage = NULL;
+SDL_Surface *purplefontImage = NULL;
+SDL_Surface *redfontImage = NULL;
+SDL_Surface *whitefontImage = NULL;
+SDL_Surface *yellowfontImage = NULL;
+
+
+
+SDL_Surface *fundoImage = NULL;
 SDL_Surface *tutorialImage = NULL;
 SDL_Surface *pauseImage = NULL;
-SDL_Surface *whitefontImage = NULL;
+
 
 SDL_Surface *cobrinhaImage = NULL;
 SDL_Surface *appleImage = NULL;
+
 
 SDL_Surface *vLine = NULL;
 SDL_Surface *hLine = NULL;
@@ -226,9 +245,18 @@ SDL_Surface *hLine = NULL;
 // nota: essa função só deve ser chamada no começo do programa
 void LoadFiles()
 {
-    tutorialImage = SDL_LoadBMP("tutorial.bmp");
-    pauseImage = fundo_transparente("pause.bmp", 0,255,255);
+    blackfontImage = fundo_transparente("fontes/blackfont.bmp", 255,0,255);
+    bluefontImage = fundo_transparente("fontes/bluefont.bmp", 255,0,255);
+    cyanfontImage = fundo_transparente("fontes/cyanfont.bmp", 255,0,255);
+    greenfontImage = fundo_transparente("fontes/greenfont.bmp", 255,0,255);
+    greyfontImage = fundo_transparente("fontes/greyfont.bmp", 255,0,255);
+    purplefontImage = fundo_transparente("fontes/purplefont.bmp", 255,0,0);
+    redfontImage = fundo_transparente("fontes/redfont.bmp", 255,0,255);
     whitefontImage = fundo_transparente("fontes/whitefont.bmp", 255,0,255);
+    yellowfontImage = fundo_transparente("fontes/yellowfont.bmp", 255,0,255);
+
+    fundoImage = SDL_LoadBMP("fundo.bmp");
+    tutorialImage = SDL_LoadBMP("tutorial.bmp");
 
     cobrinhaImage = SDL_LoadBMP("cobrinha.bmp");
     appleImage = SDL_LoadBMP("apple.bmp");
@@ -242,14 +270,58 @@ void LoadFiles()
 // nota: essa função só deve ser chamada no final do programa
 void CloseFiles()
 {
+    SDL_FreeSurface(blackfontImage);
+    SDL_FreeSurface(bluefontImage);
+    SDL_FreeSurface(cyanfontImage);
+    SDL_FreeSurface(greenfontImage);
+    SDL_FreeSurface(greyfontImage);
+    SDL_FreeSurface(purplefontImage );
+    SDL_FreeSurface(redfontImage);
+    SDL_FreeSurface(whitefontImage);
+    SDL_FreeSurface(yellowfontImage);
+
+
+
+    SDL_FreeSurface(fundoImage);
     SDL_FreeSurface(tutorialImage);
     SDL_FreeSurface(pauseImage);
-    SDL_FreeSurface(whitefontImage);
     SDL_FreeSurface(cobrinhaImage);
     SDL_FreeSurface(appleImage);
 
     SDL_FreeSurface(vLine);
     SDL_FreeSurface(hLine);
+}
+
+
+void DrawBackground()
+{
+    DrawImage(0,0,fundoImage);
+}
+
+// monstrar os pontos, tamanho, highscore
+void DrawHUD()
+{
+    char str1[10];
+    sprintf(str1, "%d", pontos);
+    DrawText(0,301,blackfontImage,tela, "Seus Pontos: ",16,32);
+    DrawText(200,301,greenfontImage,tela, str1,16,32);
+
+    char str2[10];
+    sprintf(str2, "%d", record);
+    DrawText(0,301+22,blackfontImage,tela, "Seu record: ",16,32);
+    DrawText(200,301+22,greenfontImage,tela, str2,16,32);
+
+
+    char str3[10];
+    sprintf(str3, "%d", cobrinha.tamanho);
+    DrawText(0,301+2*22,blackfontImage,tela, "Seu tamanho: ",16,32);
+    DrawText(200,301+2*22,greenfontImage,tela, str3,16,32);
+
+    if(pontos > record)
+    {
+        record = pontos;
+    }
+
 }
 
 // desenha a cobrinha na tela
@@ -301,6 +373,10 @@ while(executando)
 
 
     SDL_FillRect(tela, 0,0);
+
+    DrawBackground();
+
+    DrawHUD();
 
     DrawGrid();
 

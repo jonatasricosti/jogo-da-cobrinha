@@ -1,8 +1,10 @@
 #include <SDL.h>
+#include <SDL_mixer.h>
 
 SDL_Event evento;
 SDL_Surface *tela = NULL;
 bool executando = true;
+
 
 int pontos = 0;
 int record = 0;
@@ -205,17 +207,6 @@ void PlaceApple()
     }
 }
 
-// use essa função pra ver se a cobrinha comeu a comida
-void CollideWithSnake()
-{
-    // se cabeça da cobrinha colidir com a comida
-    if((cobrinha.x[0] == apple.x) && (cobrinha.y[0] == apple.y))
-    {
-        cobrinha.tamanho = cobrinha.tamanho+1;
-        pontos = pontos+1;
-        PlaceApple();
-    }
-}
 
 SDL_Surface *blackfontImage = NULL;
 SDL_Surface *bluefontImage = NULL;
@@ -237,9 +228,7 @@ SDL_Surface *pauseImage = NULL;
 SDL_Surface *cobrinhaImage = NULL;
 SDL_Surface *appleImage = NULL;
 
-
-SDL_Surface *vLine = NULL;
-SDL_Surface *hLine = NULL;
+Mix_Chunk * AppleSound = NULL;
 
 // use essa função pra carregar arquivos
 // nota: essa função só deve ser chamada no começo do programa
@@ -261,8 +250,8 @@ void LoadFiles()
     cobrinhaImage = SDL_LoadBMP("cobrinha.bmp");
     appleImage = SDL_LoadBMP("apple.bmp");
 
-    vLine = SDL_LoadBMP("vertical.bmp");
-    hLine = SDL_LoadBMP("horizontal.bmp");
+    AppleSound = Mix_LoadWAV("sounds/Apple_Crunch_16.wav");
+
 }
 
 
@@ -288,8 +277,7 @@ void CloseFiles()
     SDL_FreeSurface(cobrinhaImage);
     SDL_FreeSurface(appleImage);
 
-    SDL_FreeSurface(vLine);
-    SDL_FreeSurface(hLine);
+    Mix_FreeChunk(AppleSound);
 }
 
 
@@ -339,12 +327,17 @@ void DrawApple()
     DrawImage(apple.x,apple.y,appleImage);
 }
 
-void DrawGrid()
+
+// use essa função pra ver se a cobrinha comeu a comida
+void CollideWithSnake()
 {
-    for(int i = 0; i < 300; i = i+10)
+    // se cabeça da cobrinha colidir com a comida
+    if((cobrinha.x[0] == apple.x) && (cobrinha.y[0] == apple.y))
     {
-        DrawImage(i, 0, vLine);
-        DrawImage(0, i, hLine);
+        cobrinha.tamanho = cobrinha.tamanho+1;
+        pontos = pontos+1;
+        PlaceApple();
+        Mix_PlayChannel(-1, AppleSound, 0);
     }
 }
 
@@ -352,6 +345,10 @@ int main(int argc, char*args[])
 {
 SDL_Init(SDL_INIT_EVERYTHING);
 tela = SDL_SetVideoMode(screen_width,screen_height,screen_bpp,SDL_SWSURFACE);
+
+SDL_WM_SetCaption("Jogo da cobrinha", NULL);
+
+Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096);
 
 LoadFiles();
 ResetGame();
@@ -378,7 +375,6 @@ while(executando)
 
     DrawHUD();
 
-    DrawGrid();
 
     UpdateGame();
     CollideWithSnake();
@@ -395,6 +391,7 @@ while(executando)
 
 
 CloseFiles();
+Mix_CloseAudio();
 SDL_Quit();
 return 0;
 }

@@ -1,6 +1,18 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
 
+// os estados de tela jogo
+enum
+{
+    MENU,
+    TUTORIAL,
+    ABOUT,
+    PAUSE,
+    GAME,
+    GAME_OVER
+};
+int game_estado = GAME;
+
 SDL_Event evento;
 SDL_Surface *tela = NULL;
 bool executando = true;
@@ -286,7 +298,7 @@ void DrawBackground()
     DrawImage(0,0,fundoImage);
 }
 
-// monstrar os pontos, tamanho, highscore
+// monstra os pontos, tamanho, record
 void DrawHUD()
 {
     char str1[10];
@@ -296,13 +308,13 @@ void DrawHUD()
 
     char str2[10];
     sprintf(str2, "%d", record);
-    DrawText(0,301+22,blackfontImage,tela, "Seu record: ",16,32);
+    DrawText(0,301+22,blackfontImage,tela, "Seu Record: ",16,32);
     DrawText(200,301+22,greenfontImage,tela, str2,16,32);
 
 
     char str3[10];
     sprintf(str3, "%d", cobrinha.tamanho);
-    DrawText(0,301+2*22,blackfontImage,tela, "Seu tamanho: ",16,32);
+    DrawText(0,301+2*22,blackfontImage,tela, "Seu Tamanho: ",16,32);
     DrawText(200,301+2*22,greenfontImage,tela, str3,16,32);
 
     if(pontos > record)
@@ -341,6 +353,82 @@ void CollideWithSnake()
     }
 }
 
+// use essa função pra desenhar o menu na tela
+void DrawMenuAndUpdateMenu()
+{
+
+}
+
+// desenha o tutorial na tela
+void DrawTutorial()
+{
+    DrawImage(0,0,tutorialImage);
+}
+
+// os comandos do tutorial
+void updateTutorial()
+{
+    Uint8 *tecla = SDL_GetKeyState(NULL);
+
+    if(tecla[SDLK_ESCAPE])
+    {
+        game_estado = MENU;
+    }
+}
+
+// desenha o about na tela
+void DrawAbout()
+{
+    DrawText(0,0,whitefontImage,tela, "Jogo da cobrinha", 16, 32);
+    DrawText(0,32,whitefontImage,tela, "Feito por", 16, 32);
+    DrawText(0,64,whitefontImage,tela, "Jonatas Ricosti", 16, 32);
+    DrawText(0,96,whitefontImage,tela, "Audio: Koops", 16, 32);
+}
+
+// os comandos de about
+void updateAbout()
+{
+    Uint8 *tecla = SDL_GetKeyState(NULL);
+
+    if(tecla[SDLK_ESCAPE])
+    {
+        game_estado = MENU;
+    }
+}
+
+// desenha o jogo na tela
+void DrawGame()
+{
+    DrawBackground();
+    DrawHUD();
+    DrawSnake();
+    DrawApple();
+}
+
+
+// desenha o pause na tela
+void DrawPause()
+{
+    DrawGame();
+    DrawText(110,110,whitefontImage,tela, "Pause", 16,32);
+}
+
+// use essa função pra trocar as telas do jogo
+// nota: essa função deve ser respaldada
+// pois ela é responsável por dar vida ao jogo
+void RunGame()
+{
+    switch(game_estado)
+    {
+        case MENU: DrawMenuAndUpdateMenu(); break;
+        case TUTORIAL: DrawTutorial(); updateTutorial(); break;
+        case ABOUT: DrawAbout(); updateAbout(); break;
+        case PAUSE: DrawPause(); break;
+        case GAME: DrawGame(); UpdateGame(); CollideWithSnake(); break;
+        case GAME_OVER: break;
+    }
+}
+
 int main(int argc, char*args[])
 {
 SDL_Init(SDL_INIT_EVERYTHING);
@@ -366,21 +454,28 @@ while(executando)
         {
             executando = false; // fecha o programa
         }
+
+        if(evento.type == SDL_KEYDOWN)
+        {
+            if(evento.key.keysym.sym == SDLK_ESCAPE)
+            {
+                if(game_estado == GAME)
+                {
+                    game_estado = PAUSE;
+                }
+
+                else if(game_estado == PAUSE)
+                {
+                    game_estado = GAME;
+                }
+            }
+        }
     }
 
 
     SDL_FillRect(tela, 0,0);
 
-    DrawBackground();
-
-    DrawHUD();
-
-
-    UpdateGame();
-    CollideWithSnake();
-    DrawSnake();
-    DrawApple();
-
+    RunGame();
 
     SDL_Flip(tela);
     if(framerate > (SDL_GetTicks()-start))

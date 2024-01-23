@@ -1,7 +1,7 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
 
-// os estados de tela jogo
+// os estados de tela do jogo
 enum
 {
     MENU,
@@ -11,7 +11,7 @@ enum
     GAME,
     GAME_OVER
 };
-int game_estado = GAME;
+int game_estado = MENU;
 
 SDL_Event evento;
 SDL_Surface *tela = NULL;
@@ -117,6 +117,7 @@ _Snake cobrinha;
 void ResetGame()
 {
     cobrinha.tamanho = 3;
+    pontos = 0;
     // inicia as posições da cobrinha
     for(int i = 0; i < cobrinha.tamanho; i++)
     {
@@ -125,7 +126,6 @@ void ResetGame()
 
         cobrinha.vx = rectW;
         cobrinha.vy = 0;
-        pontos = 0;
     }
 }
 
@@ -210,7 +210,7 @@ void PlaceApple()
 
     for(int z = cobrinha.tamanho; z > 0; z--)
     {
-        // Verifique se comida se sobrepõe à nossa cobrinha
+        // Verifique se a comida se sobrepõe à nossa cobrinha
         if(apple.x == cobrinha.x[z] && apple.y == cobrinha.y[z])
         {
             PlaceApple();
@@ -240,6 +240,8 @@ SDL_Surface *pauseImage = NULL;
 SDL_Surface *cobrinhaImage = NULL;
 SDL_Surface *appleImage = NULL;
 
+SDL_Surface *cursorImage = NULL;
+
 Mix_Chunk * AppleSound = NULL;
 
 // use essa função pra carregar arquivos
@@ -261,6 +263,8 @@ void LoadFiles()
 
     cobrinhaImage = SDL_LoadBMP("cobrinha.bmp");
     appleImage = SDL_LoadBMP("apple.bmp");
+
+    cursorImage = fundo_transparente("cursor.bmp", 0,255,255);
 
     AppleSound = Mix_LoadWAV("sounds/Apple_Crunch_16.wav");
 
@@ -289,10 +293,11 @@ void CloseFiles()
     SDL_FreeSurface(cobrinhaImage);
     SDL_FreeSurface(appleImage);
 
+    SDL_FreeSurface(cursorImage);
     Mix_FreeChunk(AppleSound);
 }
 
-
+// desenha o background na tela
 void DrawBackground()
 {
     DrawImage(0,0,fundoImage);
@@ -321,7 +326,6 @@ void DrawHUD()
     {
         record = pontos;
     }
-
 }
 
 // desenha a cobrinha na tela
@@ -353,10 +357,95 @@ void CollideWithSnake()
     }
 }
 
-// use essa função pra desenhar o menu na tela
+// essa classe representa o cursor
+class _Cursor
+{
+public:
+    int x;
+    int y;
+};
+_Cursor cursor;
+
+// use essa função pra desenhar e controlar o menu na tela
 void DrawMenuAndUpdateMenu()
 {
+    char *options[] = {"Jogar", "Tutorial", "Sobre", "Sair"};
+    static int NumberOfNames = sizeof options / sizeof *options;
 
+    static int index = 0;
+    static int dist = 30;
+    static int x = 0;
+    static int y = 0;
+    static int NumberOfLetters = 0;
+    cursor.x = 0;
+    cursor.y = 0;
+
+    // programação do teclado
+    Uint8 *tecla = SDL_GetKeyState(NULL);
+
+    if(tecla[SDLK_DOWN])
+    {
+        index = index+1;
+    }
+
+    if(tecla[SDLK_UP])
+    {
+        index = index-1;
+    }
+
+    if(index > NumberOfNames - 1)
+    {
+        index = 0;
+    }
+
+    if(index < 0)
+    {
+        index = NumberOfNames - 1;
+    }
+
+    if(index == 0 && tecla[SDLK_RETURN])
+    {
+        game_estado = GAME;
+    }
+
+    if(index == 1 && tecla[SDLK_RETURN])
+    {
+        game_estado = TUTORIAL;
+    }
+
+    if(index == 2 && tecla[SDLK_RETURN])
+    {
+        game_estado = ABOUT;
+    }
+
+    if(index == 3 && tecla[SDLK_RETURN])
+    {
+        // fecha o programa
+        executando = false;
+    }
+
+    for(int i = 0; i < NumberOfNames; i++)
+    {
+        NumberOfLetters = strlen(options[i]);
+
+        x = (screen_width - 16*NumberOfLetters)/2;
+        y = 120;
+
+        // valor selecionado
+		if(index == i)
+        {
+            cursor.x = 45;
+            cursor.y = y + (dist*i)-2;
+            DrawImage(cursor.x,cursor.y,cursorImage);
+            DrawText(x, y+(dist*i), bluefontImage, tela, options[i], 16, 32);
+        }
+        
+        // valor não selecionado
+        else
+        {
+            DrawText(x, y+(dist*i), greyfontImage,tela, options[i], 16, 32);
+        }
+    }
 }
 
 // desenha o tutorial na tela

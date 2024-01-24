@@ -242,6 +242,8 @@ SDL_Surface *appleImage = NULL;
 
 SDL_Surface *cursorImage = NULL;
 
+SDL_Surface *iconImage = NULL;
+
 Mix_Chunk * AppleSound = NULL;
 
 // use essa função pra carregar arquivos
@@ -294,6 +296,8 @@ void CloseFiles()
     SDL_FreeSurface(appleImage);
 
     SDL_FreeSurface(cursorImage);
+    SDL_FreeSurface(iconImage);
+
     Mix_FreeChunk(AppleSound);
 }
 
@@ -439,7 +443,7 @@ void DrawMenuAndUpdateMenu()
             DrawImage(cursor.x,cursor.y,cursorImage);
             DrawText(x, y+(dist*i), bluefontImage, tela, options[i], 16, 32);
         }
-        
+
         // valor não selecionado
         else
         {
@@ -521,6 +525,10 @@ void RunGame()
 int main(int argc, char*args[])
 {
 SDL_Init(SDL_INIT_EVERYTHING);
+
+iconImage = SDL_LoadBMP("icon.bmp");
+SDL_WM_SetIcon(iconImage, NULL);
+
 tela = SDL_SetVideoMode(screen_width,screen_height,screen_bpp,SDL_SWSURFACE);
 
 SDL_WM_SetCaption("Jogo da cobrinha", NULL);

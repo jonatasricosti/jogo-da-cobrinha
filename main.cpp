@@ -9,9 +9,10 @@ enum
     ABOUT,
     PAUSE,
     GAME,
-    GAME_OVER
 };
 int game_estado = MENU;
+
+bool playsound = true;
 
 SDL_Event evento;
 SDL_Surface *tela = NULL;
@@ -175,6 +176,12 @@ void UpdateGame()
         cobrinha.vy = rectH;
     }
 
+    // ativa/desativa o som
+    else if(tecla[SDLK_s])
+    {
+        playsound = !playsound;
+    }
+
     // colisões nas bordas da tela
     // lado esquerdo, lado direto, em cima, em baixo da tela
     if(cobrinha.x[0] < 0 ||
@@ -319,6 +326,16 @@ void DrawHUD()
     DrawText(0,301+2*22,blackfontImage,tela, "Seu Tamanho: ",16,32);
     DrawText(200,301+2*22,greenfontImage,tela, str3,16,32);
 
+    if(playsound == true)
+    {
+        DrawText(0,301+3*22,blackfontImage,tela, "Som ativado",16,32);
+    }
+
+    else if(playsound == false)
+    {
+        DrawText(0,301+3*22,blackfontImage,tela, "Som desativado",16,32);
+    }
+
     if(pontos > record)
     {
         record = pontos;
@@ -350,7 +367,10 @@ void CollideWithSnake()
         cobrinha.tamanho = cobrinha.tamanho+1;
         pontos = pontos+1;
         PlaceApple();
-        Mix_PlayChannel(-1, AppleSound, 0);
+        if(playsound == true)
+        {
+            Mix_PlayChannel(-1, AppleSound, 0);
+        }
     }
 }
 
@@ -511,7 +531,6 @@ void RunGame()
         case ABOUT: DrawAbout(); updateAbout(); break;
         case PAUSE: DrawPause(); break;
         case GAME: DrawGame(); UpdateGame(); CollideWithSnake(); break;
-        case GAME_OVER: break;
     }
 }
 

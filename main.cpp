@@ -234,9 +234,6 @@ SDL_Surface *yellowfontImage = NULL;
 
 SDL_Surface *fundoImage = NULL;
 SDL_Surface *tutorialImage = NULL;
-SDL_Surface *pauseImage = NULL;
-
-
 SDL_Surface *cobrinhaImage = NULL;
 SDL_Surface *appleImage = NULL;
 
@@ -260,13 +257,11 @@ void LoadFiles()
     whitefontImage = fundo_transparente("fontes/whitefont.bmp", 255,0,255);
     yellowfontImage = fundo_transparente("fontes/yellowfont.bmp", 255,0,255);
 
-    fundoImage = SDL_LoadBMP("fundo.bmp");
-    tutorialImage = SDL_LoadBMP("tutorial.bmp");
-
-    cobrinhaImage = SDL_LoadBMP("cobrinha.bmp");
-    appleImage = SDL_LoadBMP("apple.bmp");
-
-    cursorImage = fundo_transparente("cursor.bmp", 0,255,255);
+    fundoImage = SDL_LoadBMP("gfx/fundo.bmp");
+    tutorialImage = SDL_LoadBMP("gfx/tutorial.bmp");
+    cobrinhaImage = SDL_LoadBMP("gfx/cobrinha.bmp");
+    appleImage = SDL_LoadBMP("gfx/apple.bmp");
+    cursorImage = fundo_transparente("gfx/cursor.bmp", 0,255,255);
 
     AppleSound = Mix_LoadWAV("sounds/Apple_Crunch_16.wav");
 
@@ -291,13 +286,11 @@ void CloseFiles()
 
     SDL_FreeSurface(fundoImage);
     SDL_FreeSurface(tutorialImage);
-    SDL_FreeSurface(pauseImage);
     SDL_FreeSurface(cobrinhaImage);
     SDL_FreeSurface(appleImage);
-
     SDL_FreeSurface(cursorImage);
-    SDL_FreeSurface(iconImage);
 
+    SDL_FreeSurface(iconImage);
     Mix_FreeChunk(AppleSound);
 }
 
@@ -526,7 +519,7 @@ int main(int argc, char*args[])
 {
 SDL_Init(SDL_INIT_EVERYTHING);
 
-iconImage = SDL_LoadBMP("icon.bmp");
+iconImage = SDL_LoadBMP("gfx/icon.bmp");
 SDL_WM_SetIcon(iconImage, NULL);
 
 tela = SDL_SetVideoMode(screen_width,screen_height,screen_bpp,SDL_SWSURFACE);
